@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04ccb2f1cbcd09c42a3acc3e0434ca68, type: 3}
+  m_Name: The Cracked Wall
+  m_EditorClassIdentifier: Assembly-CSharp::ExplorerEvent
+  Title: The Cracked Wall
+  Description: Your explorer notices a section of wall that looks different - scorch
+    marks, scratches, something deliberate. It would take time to investigate.
+  Targeting: 1
+  BaseTimeCost: 0.05
+  Choices:
+  - Label: Study it carefully
+    VagueHint: Knowledge takes time. Time costs energy.
+    StatCheck: 3
+    RequiresCheck: 1
+    ExtraTimeCostOnSuccess: 0.1
+    ExtraTimeCostOnFail: 0.1
+    IntelGain: 15
+    StaminaCost: 10
+    SuccessMessage: A hidden passage!
+    IntelGainOnFail: 5
+    StaminaCostOnFail: 20
+    FailureMessage: Couldn't make heads or tails of it
+  - Label: Mark it and move on.
+    VagueHint: 'Safe. But you might be leaving something bahind. '
+    StatCheck: 0
+    RequiresCheck: 0
+    ExtraTimeCostOnSuccess: 0
+    ExtraTimeCostOnFail: 0
+    IntelGain: 8
+    StaminaCost: 5
+    SuccessMessage: Maybe someone will come back to it
+    IntelGainOnFail: 3
+    StaminaCostOnFail: 5
+    FailureMessage: It would be hard to come back here

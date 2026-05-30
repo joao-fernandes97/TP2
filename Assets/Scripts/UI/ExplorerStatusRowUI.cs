@@ -1,0 +1,45 @@
+// ExplorerStatusRowUI.cs
+// Assets/Scripts/UI/ExplorerStatusRowUI.cs
+
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class ExplorerStatusRowUI : MonoBehaviour
+{
+    [SerializeField] private TMP_Text nameLabel;
+    [SerializeField] private Slider   staminaBar;
+    [SerializeField] private TMP_Text intelLabel;
+    [SerializeField] private TMP_Text statsLabel;   // NEW — wire up in Inspector
+    [SerializeField] private Image    rowBackground;
+
+    private Explorer _explorer;
+
+    private static readonly Color AliveColor    = new(0.2f, 0.2f, 0.2f);
+    private static readonly Color CollapseColor = new(0.5f, 0.1f, 0.1f);
+
+    public void Setup(Explorer explorer)
+    {
+        _explorer = explorer;
+        staminaBar.minValue = 0;
+        Refresh();
+    }
+
+    public void Refresh()
+    {
+        if (_explorer == null) return;
+
+        nameLabel.text       = _explorer.Name;
+        staminaBar.maxValue  = _explorer.MaxStamina;
+        staminaBar.value     = _explorer.Stamina;
+        intelLabel.text      = $"{_explorer.CarriedIntel} intel";
+        rowBackground.color  = _explorer.Status == ExplorerStatus.Dead ? CollapseColor : AliveColor;
+
+        // Stats are static after generation, but displayed here for context
+        if (statsLabel != null)
+            statsLabel.text =   $"END {_explorer.Endurance} \n" + 
+                                $"STR {_explorer.Strength} \n" +
+                                $"SPD {_explorer.Speed} \n" +
+                                $"LCK {_explorer.Luck}";
+    }
+}
