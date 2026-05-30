@@ -12,6 +12,7 @@ public class MazePanelUI : MonoBehaviour
     [SerializeField] private GameObject explorerStatusRowPrefab;
     [SerializeField] private TMP_Text   eventLogText;
     [SerializeField] private ScrollRect eventLogScroll;
+    [SerializeField] private TMP_Text  depthLabel;
 
     private readonly Dictionary<Explorer, ExplorerStatusRowUI> _rows = new();
 
@@ -30,6 +31,8 @@ public class MazePanelUI : MonoBehaviour
         }
 
         DayManager.Instance.OnDispatchStarted        += BuildStatusList;
+        DayManager.Instance.OnReturnStarted          += RefreshAllRows;
+        DayManager.Instance.OnDayProgressUpdated     += OnDayProgressUpdated;
         GameManager.Instance.OnExplorerStatusChanged += RefreshRow;
         EventManager.Instance.OnEventResolved        += AppendLog;
         GameManager.Instance.OnExplorerStatsChanged  += RefreshRow;
@@ -43,6 +46,8 @@ public class MazePanelUI : MonoBehaviour
         foreach (var row in _rows.Values) Destroy(row.gameObject);
         _rows.Clear();
         eventLogText.text = "";
+        
+        if (depthLabel != null) depthLabel.text = "Distance: 0m";
 
         foreach (var explorer in GameManager.Instance.AllExplorers)
         {
@@ -56,9 +61,23 @@ public class MazePanelUI : MonoBehaviour
         }
     }
 
+    void OnDayProgressUpdated(float _)
+    {
+        if (depthLabel == null) return;
+        int metres = Mathf.RoundToInt(DayManager.Instance.PartyDepthMeters);
+        string prefix = DayManager.Instance.IsReturning ? "Returning:" : "Distance:";
+        depthLabel.text = $"{prefix}  {metres}m";
+    }
+
     void RefreshRow(Explorer explorer)
     {
         if (_rows.TryGetValue(explorer, out var row))
+            row.Refresh();
+    }
+
+    void RefreshAllRows()
+    {
+        foreach (var row in _rows.Values)
             row.Refresh();
     }
 

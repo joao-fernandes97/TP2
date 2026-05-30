@@ -138,6 +138,13 @@ public class GameManager : MonoBehaviour
             // Explorers still Exploring at nightfall become Lost
             if (e.Status == ExplorerStatus.Exploring)
                 SetExplorerStatus(e, ExplorerStatus.Lost);
+
+            // Was returning but night fell before they reached camp — also lost
+            if (e.Status == ExplorerStatus.Returning)
+            {
+                Debug.Log($"⚠️  {e.Name} was still on the way back when night fell — Lost!");
+                SetExplorerStatus(e, ExplorerStatus.Lost);
+            }
         }
 
         if (!GameOver)
@@ -150,7 +157,8 @@ public class GameManager : MonoBehaviour
     {
         bool anyAlive = AllExplorers.Exists(e =>
             e.Status == ExplorerStatus.InCamp ||
-            e.Status == ExplorerStatus.Exploring);
+            e.Status == ExplorerStatus.Exploring ||
+            e.Status == ExplorerStatus.Returning);
 
         if (!anyAlive)
             TriggerGameOver(won: false);

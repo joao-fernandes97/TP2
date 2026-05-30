@@ -17,7 +17,8 @@ public class TopBarUI : MonoBehaviour
     {
         DayManager.Instance.OnBriefingStarted    += OnBriefing;
         DayManager.Instance.OnDispatchStarted    += OnDispatch;
-        DayManager.Instance.OnDayProgressUpdated += p => dayProgressBar.value = p;
+        DayManager.Instance.OnReturnStarted      += OnReturn;
+        DayManager.Instance.OnDayProgressUpdated += OnDayProgressUpdated;
 
         GameManager.Instance.OnDayChanged    += d => dayLabel.text = $"Day {d}";
         GameManager.Instance.OnIntelChanged  += UpdateIntel;
@@ -47,6 +48,17 @@ public class TopBarUI : MonoBehaviour
     void OnDispatch()
     {
         recallButton.interactable = true;
+    }
+
+    void OnReturn()
+    {
+        recallButton.interactable = false;
+        recallLabel.text          = "Returning…";
+    }
+
+    void OnDayProgressUpdated(float dayProgress)
+    {
+        dayProgressBar.value = dayProgress;
     }
 
     void UpdateIntel(int total)

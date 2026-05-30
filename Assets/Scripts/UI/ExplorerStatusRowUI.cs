@@ -16,6 +16,7 @@ public class ExplorerStatusRowUI : MonoBehaviour
     private Explorer _explorer;
 
     private static readonly Color AliveColor    = new(0.2f, 0.2f, 0.2f);
+    private static readonly Color ReturningColor = new(0.15f, 0.35f, 0.5f);
     private static readonly Color CollapseColor = new(0.5f, 0.1f, 0.1f);
 
     public void Setup(Explorer explorer)
@@ -33,7 +34,12 @@ public class ExplorerStatusRowUI : MonoBehaviour
         staminaBar.maxValue  = _explorer.MaxStamina;
         staminaBar.value     = _explorer.Stamina;
         intelLabel.text      = $"{_explorer.CarriedIntel} intel";
-        rowBackground.color  = _explorer.Status == ExplorerStatus.Dead ? CollapseColor : AliveColor;
+        rowBackground.color  = _explorer.Status switch
+        {
+            ExplorerStatus.Dead      => CollapseColor,
+            ExplorerStatus.Returning => ReturningColor,
+            _                        => AliveColor
+        };
 
         // Stats are static after generation, but displayed here for context
         if (statsLabel != null)

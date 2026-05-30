@@ -18,14 +18,23 @@ public class DayManager : MonoBehaviour
     [SerializeField] private float dayDurationSeconds     = 60f;
     [SerializeField] private float recallWarningThreshold = 0.75f;
 
+    [Header("Return Journey")]
+    [Tooltip("How many times faster explorers retrace the known path vs exploring fresh ground. " +
+             "2 = half the real-time to return the same distance.")]
+    [SerializeField] private float returnSpeedMultiplier = 2f;
+
     [Header("Event Timing")]
     [SerializeField] private float minTimeBetweenEvents = 0.10f;
     [SerializeField] private float eventChancePerTick   = 0.02f;
 
     public float DayProgress  { get; private set; } = 0f;
+    public float PartyDepth   { get; private set; } = 0f;
+    public float MaxDepthMeters  { get; private set; } = 0f;
+    public float PartyDepthMeters => PartyDepth * MaxDepthMeters;
     public bool  DayRunning   { get; private set; } = false;
     public bool  InBriefing   { get; private set; } = false;
     public bool  RecallIssued { get; private set; } = false;
+    public bool  IsReturning  { get; private set; } = false;
 
     // Explorers the player has toggled for today's run
     private readonly HashSet<Explorer> _selectedForDispatch = new();
@@ -40,6 +49,7 @@ public class DayManager : MonoBehaviour
     public event System.Action           OnBriefingStarted;   // UI: show selection screen
     public event System.Action           OnDispatchStarted;   // UI: hide selection, show maze
     public event System.Action           OnRecallWarning;
+    public event System.Action           OnReturnStarted;
     public event System.Action           OnNightfall;
 
     // ─── Called by GameManager at the top of each day ────────────────────────
@@ -71,7 +81,9 @@ public class DayManager : MonoBehaviour
         if (DayRunning || InBriefing) return;
 
         DayProgress    = 0f;
+        PartyDepth     = 0f;
         RecallIssued   = false;
+        IsReturning    = false;
         _lastEventTime = 0f;
         _selectedForDispatch.Clear();
 
@@ -116,8 +128,21 @@ public class DayManager : MonoBehaviour
 
         InBriefing = false;
 
+        // Find the slowest explorer's Speed — the party moves at their pace
+        int minSpeed = int.MaxValue;
         foreach (var e in _selectedForDispatch)
+        {
             GameManager.Instance.SetExplorerStatus(e, ExplorerStatus.Exploring);
+            if (e.Speed < minSpeed) minSpeed = e.Speed;
+        }
+
+        // Maze pace in km/h: cautious exploration, gated by the slowest member.
+        // Speed 1 → 0.75 km/h, Speed 5 → 1.75 km/h, Speed 9 → 2.75 km/h.
+        // Over an 8-hour day, converted to metres.
+        float paceKmh     = 0.5f + minSpeed * 0.25f;
+        MaxDepthMeters     = paceKmh * 8f * 1000f;
+
+        Debug.Log($"[DayManager] Party min speed: {minSpeed} → pace {paceKmh:F2} km/h → max depth {MaxDepthMeters:F0}m");
 
         _selectedForDispatch.Clear();
 
@@ -131,17 +156,19 @@ public class DayManager : MonoBehaviour
 
     public void IssueRecall()
     {
-        if (!DayRunning || RecallIssued) return;
+        if (!DayRunning || RecallIssued || IsReturning) return;
 
         RecallIssued = true;
-        Debug.Log("📣 Recall issued!");
+        IsReturning  = true;
 
         foreach (var e in GameManager.Instance.AllExplorers)
             if (e.Status == ExplorerStatus.Exploring)
-                GameManager.Instance.SetExplorerStatus(e, ExplorerStatus.InCamp);
+                GameManager.Instance.SetExplorerStatus(e, ExplorerStatus.Returning);
 
-        StopCoroutine(_dayCoroutine);
-        StartCoroutine(EndDayAfterDelay(1.5f));
+        OnReturnStarted?.Invoke();
+        Debug.Log("📣 Recall issued! Party turning back.");
+
+        // DayLoop is still running and will handle the return leg naturally.
     }
 
     // ─── Day Loop ─────────────────────────────────────────────────────────────
@@ -157,25 +184,54 @@ public class DayManager : MonoBehaviour
             // ← Pause time while an event is being resolved
             if (IsPaused) continue;
 
-            DayProgress += Time.deltaTime / dayDurationSeconds;
+            float tickSize = Time.deltaTime / dayDurationSeconds;
+            DayProgress += tickSize;
             DayProgress  = Mathf.Clamp01(DayProgress);
             OnDayProgressUpdated?.Invoke(DayProgress);
 
+            // ── Move party depth ───────────────────────────────────────────────
+            if (IsReturning)
+            {
+                PartyDepth = Mathf.Max(PartyDepth - tickSize * returnSpeedMultiplier, 0f);
+
+                if (PartyDepth <= 0f)
+                {
+                    // Whole party back — flip everyone to InCamp and exit early
+                    foreach (var e in GameManager.Instance.AllExplorers)
+                        if (e.Status == ExplorerStatus.Returning)
+                            GameManager.Instance.SetExplorerStatus(e, ExplorerStatus.InCamp);
+
+                    Debug.Log("🏕️  Whole party back in camp!");
+                    break;
+                }
+            }
+            else
+            {
+                PartyDepth = Mathf.Min(PartyDepth + tickSize, 1f);
+            }
+            
             if (!RecallIssued && DayProgress >= recallWarningThreshold)
-                if (DayProgress - Time.deltaTime / dayDurationSeconds < recallWarningThreshold)
+                if (DayProgress - tickSize < recallWarningThreshold)
                 {
                     OnRecallWarning?.Invoke();
                     Debug.Log("⚠️  Night is approaching!");
                 }
 
-            TryFireEvent();
+            if (!IsReturning)
+                TryFireEvent();
         }
 
         DayRunning = false;
-        OnNightfall?.Invoke();
-        Debug.Log("🌑 Nightfall!");
 
-        yield return new WaitForSeconds(2f);
+        bool nightfell = DayProgress >= 1f;
+        if (nightfell)
+        {
+            OnNightfall?.Invoke();
+            Debug.Log("🌑 Nightfall!");
+        }
+
+        yield return new WaitForSeconds(nightfell ? 2f : 1f);
+
         GameManager.Instance.EndDay();
     }
 
@@ -194,13 +250,19 @@ public class DayManager : MonoBehaviour
     {
         DayProgress = Mathf.Min(DayProgress + amount, 0.99f);
         OnDayProgressUpdated?.Invoke(DayProgress);
+
+        if (IsReturning)
+        {
+            // A delay on the way back adds distance to retrace
+            PartyDepth = Mathf.Min(PartyDepth + amount, 1f);
+            Debug.Log($"[TIME] Return delayed — party depth now {PartyDepth:P0}");
+        }
     }
 
     // ─── Event Firing ─────────────────────────────────────────────────────────
 
     private void TryFireEvent()
     {
-        // Double guard — belt and suspenders
         if (_eventInProgress)                                       return;
         if (DayProgress - _lastEventTime < minTimeBetweenEvents)    return;
 
