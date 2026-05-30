@@ -3129,8 +3129,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EventManager
   eventPool:
+  - {fileID: 11400000, guid: 16e71a7d55ae3cb40af268c9fb3670ce, type: 2}
+  - {fileID: 11400000, guid: d98d1a2ee0cd02547bcc762afd84edc8, type: 2}
+  - {fileID: 11400000, guid: 1e1b5cc7a2b164a4bace442c4a23feee, type: 2}
+  - {fileID: 11400000, guid: 5e00a13ed7eb5124187b88fd444eb740, type: 2}
   - {fileID: 11400000, guid: 29a8487a809322b4c8b09d78e00ebded, type: 2}
   - {fileID: 11400000, guid: 26cd1d9c8d15d2b429ee6d7b4eceb0e1, type: 2}
+  - {fileID: 11400000, guid: 4ce1ab7150444be44b509c969317d72c, type: 2}
 --- !u!1 &1173277035
 GameObject:
   m_ObjectHideFlags: 0

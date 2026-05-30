@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04ccb2f1cbcd09c42a3acc3e0434ca68, type: 3}
+  m_Name: Faulty Rope
+  m_EditorClassIdentifier: Assembly-CSharp::ExplorerEvent
+  Title: Faulty Rope
+  Description: One of your climbing ropes shows some signs of fraying as you prepare
+    for a climb.
+  Targeting: 0
+  BaseTimeCost: 0
+  Choices:
+  - Label: Attempt the climb all the same.
+    VagueHint: You'd have to be pretty strong to catch yourself if something goes
+      wrong
+    StatCheck: 2
+    RequiresCheck: 1
+    ExtraTimeCostOnSuccess: 0
+    ExtraTimeCostOnFail: 0
+    IntelGain: 0
+    StaminaCost: 10
+    SuccessMessage: The rope snapped! But you managed to catch yourself. That could've
+      been bad.
+    IntelGainOnFail: 0
+    StaminaCostOnFail: 30
+    FailureMessage: The rope snapped! A nasty fall!
+  - Label: Retreat and re-route
+    VagueHint: It will take time but better safe than sorry.
+    StatCheck: 0
+    RequiresCheck: 0
+    ExtraTimeCostOnSuccess: 0.1
+    ExtraTimeCostOnFail: 0.1
+    IntelGain: 0
+    StaminaCost: 0
+    SuccessMessage: 
+    IntelGainOnFail: 0
+    StaminaCostOnFail: 0
+    FailureMessage: 

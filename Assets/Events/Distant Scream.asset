@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04ccb2f1cbcd09c42a3acc3e0434ca68, type: 3}
+  m_Name: Distant Scream
+  m_EditorClassIdentifier: Assembly-CSharp::ExplorerEvent
+  Title: Distant Scream
+  Description: You hear a loud screech deeper in the maze.
+  Targeting: 1
+  BaseTimeCost: 0.05
+  Choices:
+  - Label: Send someone to investigate
+    VagueHint: Doesn't seem very advisable. But you might get Lucky.
+    StatCheck: 4
+    RequiresCheck: 1
+    ExtraTimeCostOnSuccess: 0
+    ExtraTimeCostOnFail: 0
+    IntelGain: 12
+    StaminaCost: 0
+    SuccessMessage: You uncover a hidden nest. And manage to slip away unnoticed.
+    IntelGainOnFail: 6
+    StaminaCostOnFail: 20
+    FailureMessage: 'You uncover a hidden monster nest. But one of them spots you... '
+  - Label: Mark the location and move on.
+    VagueHint: Some other time
+    StatCheck: 0
+    RequiresCheck: 0
+    ExtraTimeCostOnSuccess: 0
+    ExtraTimeCostOnFail: 0
+    IntelGain: 3
+    StaminaCost: 0
+    SuccessMessage: You press on.
+    IntelGainOnFail: 3
+    StaminaCostOnFail: 0
+    FailureMessage: You press on.
