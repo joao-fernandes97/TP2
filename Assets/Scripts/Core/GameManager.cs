@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour
     public event Action<int>      OnIntelChanged;    // new total
     public event Action<int>      OnDayChanged;      // new day number
     public event Action<Explorer> OnExplorerStatusChanged;
+    public event Action<Explorer> OnExplorerStatsChanged;
     public event Action<bool>     OnGameOver;        // true = win, false = loss
 
     // ─── Init ─────────────────────────────────────────────────────────────────
@@ -85,6 +86,11 @@ public class GameManager : MonoBehaviour
         explorer.Status = newStatus;
         OnExplorerStatusChanged?.Invoke(explorer);
         CheckLossCondition();
+    }
+
+    public void NotifyExplorerStatsChanged(Explorer explorer)
+    {
+        OnExplorerStatsChanged?.Invoke(explorer);
     }
 
     // ─── Day Cycle ────────────────────────────────────────────────────────────

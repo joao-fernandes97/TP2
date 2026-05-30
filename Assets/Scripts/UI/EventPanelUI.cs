@@ -69,7 +69,7 @@ public class EventPanelUI : MonoBehaviour
             var button = go.GetComponentInChildren<Button>();
             var label  = go.GetComponentInChildren<TMP_Text>();
 
-            label.text = $"{explorer.Name}\nSTR:{explorer.Strength} SPD:{explorer.Speed}";
+            label.text = $"{explorer.Name}";
 
             // Capture for lambda
             var captured = explorer;

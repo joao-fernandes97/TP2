@@ -174,6 +174,8 @@ public class EventManager : MonoBehaviour
             Debug.Log($"💀 {explorer.Name} has collapsed!");
             GameManager.Instance.SetExplorerStatus(explorer, ExplorerStatus.Dead);
         }
+
+        GameManager.Instance.NotifyExplorerStatsChanged(explorer);
     }
 
     private bool RollChoice(EventChoice choice, Explorer explorer)

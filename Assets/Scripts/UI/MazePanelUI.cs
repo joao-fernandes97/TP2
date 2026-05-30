@@ -32,6 +32,7 @@ public class MazePanelUI : MonoBehaviour
         DayManager.Instance.OnDispatchStarted        += BuildStatusList;
         GameManager.Instance.OnExplorerStatusChanged += RefreshRow;
         EventManager.Instance.OnEventResolved        += AppendLog;
+        GameManager.Instance.OnExplorerStatsChanged  += RefreshRow;
 
         Debug.Log("MazePanelUI: Subscriptions registered.");
     }
