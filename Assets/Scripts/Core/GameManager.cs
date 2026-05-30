@@ -142,7 +142,7 @@ public class GameManager : MonoBehaviour
             // Was returning but night fell before they reached camp — also lost
             if (e.Status == ExplorerStatus.Returning)
             {
-                Debug.Log($"⚠️  {e.Name} was still on the way back when night fell — Lost!");
+                Debug.Log($"{e.Name} was still on the way back when night fell — Lost!");
                 SetExplorerStatus(e, ExplorerStatus.Lost);
             }
         }
@@ -170,7 +170,7 @@ public class GameManager : MonoBehaviour
         GameOver  = true;
         PlayerWon = won;
         OnGameOver?.Invoke(won);
-        Debug.Log(won ? "🏆 You Win!" : "💀 Game Over.");
+        Debug.Log(won ? "You Win!" : "Game Over.");
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────

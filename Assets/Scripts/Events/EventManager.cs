@@ -156,14 +156,14 @@ public class EventManager : MonoBehaviour
             explorer.CarriedIntel += choice.IntelGain;
             explorer.Stamina      -= choice.StaminaCost;
             extraTimeCost          = choice.ExtraTimeCostOnSuccess;
-            message = $"✅ {choice.SuccessMessage} (+{choice.IntelGain} intel, -{choice.StaminaCost} stamina)";
+            message = $"{choice.SuccessMessage} (+{choice.IntelGain} intel, -{choice.StaminaCost} stamina)";
         }
         else
         {
             explorer.CarriedIntel += choice.IntelGainOnFail;
             explorer.Stamina      -= choice.StaminaCostOnFail;
             extraTimeCost          = choice.ExtraTimeCostOnFail;
-            message = $"❌ {choice.FailureMessage} (+{choice.IntelGainOnFail} intel, -{choice.StaminaCostOnFail} stamina)";
+            message = $"{choice.FailureMessage} (+{choice.IntelGainOnFail} intel, -{choice.StaminaCostOnFail} stamina)";
         }
 
         Debug.Log($"[RESULT] {message} | {explorer.Name} stamina: {explorer.Stamina}/{explorer.MaxStamina}");
@@ -171,7 +171,7 @@ public class EventManager : MonoBehaviour
         if (explorer.Stamina <= 0)
         {
             explorer.Stamina = 0;
-            Debug.Log($"💀 {explorer.Name} has collapsed!");
+            Debug.Log($"{explorer.Name} has collapsed!");
             GameManager.Instance.SetExplorerStatus(explorer, ExplorerStatus.Dead);
         }
 

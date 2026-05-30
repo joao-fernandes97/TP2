@@ -89,7 +89,7 @@ public class DayManager : MonoBehaviour
 
         InBriefing = true;
         OnBriefingStarted?.Invoke();
-        Debug.Log($"📋 Briefing — Day {GameManager.Instance.CurrentDay}. Select explorers to dispatch.");
+        Debug.Log($"Briefing — Day {GameManager.Instance.CurrentDay}. Select explorers to dispatch.");
     }
 
     // ─── Called by UI (toggle buttons on each explorer card) ─────────────────
@@ -104,7 +104,7 @@ public class DayManager : MonoBehaviour
         else
             _selectedForDispatch.Add(explorer);
 
-        Debug.Log($"  {(IsSelected(explorer) ? "✅" : "⬜")} {explorer.Name} selected for dispatch");
+        Debug.Log($"{explorer.Name} {(IsSelected(explorer) ? "Selected for" : "Removed from")} dispatch");
     }
 
     public bool IsSelected(Explorer explorer) => _selectedForDispatch.Contains(explorer);
@@ -147,7 +147,7 @@ public class DayManager : MonoBehaviour
         _selectedForDispatch.Clear();
 
         OnDispatchStarted?.Invoke();
-        Debug.Log($"☀️  Explorers dispatched! Day {GameManager.Instance.CurrentDay} underway.");
+        Debug.Log($"Explorers dispatched! Day {GameManager.Instance.CurrentDay} underway.");
 
         _dayCoroutine = StartCoroutine(DayLoop());
     }
@@ -166,7 +166,7 @@ public class DayManager : MonoBehaviour
                 GameManager.Instance.SetExplorerStatus(e, ExplorerStatus.Returning);
 
         OnReturnStarted?.Invoke();
-        Debug.Log("📣 Recall issued! Party turning back.");
+        Debug.Log("Recall issued! Party turning back.");
 
         // DayLoop is still running and will handle the return leg naturally.
     }
@@ -201,7 +201,7 @@ public class DayManager : MonoBehaviour
                         if (e.Status == ExplorerStatus.Returning)
                             GameManager.Instance.SetExplorerStatus(e, ExplorerStatus.InCamp);
 
-                    Debug.Log("🏕️  Whole party back in camp!");
+                    Debug.Log("Whole party back in camp!");
                     break;
                 }
             }
@@ -214,7 +214,7 @@ public class DayManager : MonoBehaviour
                 if (DayProgress - tickSize < recallWarningThreshold)
                 {
                     OnRecallWarning?.Invoke();
-                    Debug.Log("⚠️  Night is approaching!");
+                    Debug.Log("Night is approaching!");
                 }
 
             if (!IsReturning)
@@ -227,7 +227,7 @@ public class DayManager : MonoBehaviour
         if (nightfell)
         {
             OnNightfall?.Invoke();
-            Debug.Log("🌑 Nightfall!");
+            Debug.Log("Nightfall!");
         }
 
         yield return new WaitForSeconds(nightfell ? 2f : 1f);

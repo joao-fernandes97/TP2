@@ -8,7 +8,7 @@ using TMPro;
 public class ExplorerStatusRowUI : MonoBehaviour
 {
     [SerializeField] private TMP_Text nameLabel;
-    [SerializeField] private Slider   staminaBar;
+    [SerializeField] private TMP_Text staminaLabel;
     [SerializeField] private TMP_Text intelLabel;
     [SerializeField] private TMP_Text statsLabel;   // NEW — wire up in Inspector
     [SerializeField] private Image    rowBackground;
@@ -22,7 +22,6 @@ public class ExplorerStatusRowUI : MonoBehaviour
     public void Setup(Explorer explorer)
     {
         _explorer = explorer;
-        staminaBar.minValue = 0;
         Refresh();
     }
 
@@ -31,8 +30,7 @@ public class ExplorerStatusRowUI : MonoBehaviour
         if (_explorer == null) return;
 
         nameLabel.text       = _explorer.Name;
-        staminaBar.maxValue  = _explorer.MaxStamina;
-        staminaBar.value     = _explorer.Stamina;
+        staminaLabel.text = $"{_explorer.Stamina}/{_explorer.MaxStamina} STM";
         intelLabel.text      = $"{_explorer.CarriedIntel} intel";
         rowBackground.color  = _explorer.Status switch
         {
