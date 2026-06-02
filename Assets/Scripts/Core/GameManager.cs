@@ -22,6 +22,10 @@ public class GameManager : MonoBehaviour
     [Header("Win / Loss Conditions")]
     [SerializeField] private int intelToWin = 100;
     [SerializeField] private int maxDays    = 15;
+    [Header("Intel Milestones (checked at end of day)")]
+    [SerializeField] private int day5MilestoneIntel  = 25;
+    [SerializeField] private int day10MilestoneIntel = 60;
+
 
     [Header("Starting Conditions")]
     [SerializeField] private int startingExplorers = 4;
@@ -34,6 +38,8 @@ public class GameManager : MonoBehaviour
 
     public int IntelToWin  => intelToWin;
     public int MaxDays     => maxDays;
+    public int Day5MilestoneIntel  => day5MilestoneIntel;
+    public int Day10MilestoneIntel => day10MilestoneIntel;
 
     // Explorer roster — other systems read this list
     public List<Explorer> AllExplorers { get; private set; } = new();
@@ -44,6 +50,7 @@ public class GameManager : MonoBehaviour
     public event Action<Explorer> OnExplorerStatusChanged;
     public event Action<Explorer> OnExplorerStatsChanged;
     public event Action<bool>     OnGameOver;        // true = win, false = loss
+    public event Action<int, int, bool> OnMilestoneChecked; // (day, target, passed)
 
     // ─── Init ─────────────────────────────────────────────────────────────────
     IEnumerator Start()
@@ -126,7 +133,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void EndDay()
     {
-        // Bank intel from all explorers who made it back in time
+        // Bank intel from explorers who made it back
         foreach (var e in AllExplorers)
         {
             if (e.Status == ExplorerStatus.InCamp && e.CarriedIntel > 0)
@@ -135,20 +142,35 @@ public class GameManager : MonoBehaviour
                 e.CarriedIntel = 0;
             }
 
-            // Explorers still Exploring at nightfall become Lost
             if (e.Status == ExplorerStatus.Exploring)
                 SetExplorerStatus(e, ExplorerStatus.Lost);
-
-            // Was returning but night fell before they reached camp — also lost
-            if (e.Status == ExplorerStatus.Returning)
-            {
-                Debug.Log($"{e.Name} was still on the way back when night fell — Lost!");
-                SetExplorerStatus(e, ExplorerStatus.Lost);
-            }
         }
+
+        // ── Milestone checks ──────────────────────────────────────────────────
+        if (!GameOver)
+            CheckMilestone();
 
         if (!GameOver)
             StartNewDay();
+    }
+
+    private void CheckMilestone()
+    {
+        int target = CurrentDay switch
+        {
+            5  => day5MilestoneIntel,
+            10 => day10MilestoneIntel,
+            _  => -1
+        };
+
+        if (target < 0) return; // not a milestone day
+
+        bool passed = IntelCollected >= target;
+        OnMilestoneChecked?.Invoke(CurrentDay, target, passed);
+        Debug.Log($"[Milestone] Day {CurrentDay} — need {target} intel, have {IntelCollected} → {(passed ? "PASS" : "FAIL ❌")}");
+
+        if (!passed)
+            TriggerGameOver(won: false);
     }
 
     // ─── Win / Loss ───────────────────────────────────────────────────────────

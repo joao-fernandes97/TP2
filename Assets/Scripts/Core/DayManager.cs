@@ -24,7 +24,8 @@ public class DayManager : MonoBehaviour
     [SerializeField] private float returnSpeedMultiplier = 2f;
 
     [Header("Event Timing")]
-    [SerializeField] private float minTimeBetweenEvents = 0.10f;
+    [SerializeField] private float minTimeBetweenEvents = 0.08f;
+    [SerializeField] private float maxTimeBetweenEvents = 0.20f;
     [SerializeField] private float eventChancePerTick   = 0.02f;
 
     public float DayProgress  { get; private set; } = 0f;
@@ -39,6 +40,7 @@ public class DayManager : MonoBehaviour
     // Explorers the player has toggled for today's run
     private readonly HashSet<Explorer> _selectedForDispatch = new();
 
+    private float _nextEventCooldown;
     private float     _lastEventTime;
     public bool IsPaused => _eventInProgress;
     private bool _eventInProgress;
@@ -97,6 +99,7 @@ public class DayManager : MonoBehaviour
         {
             _eventInProgress = false;
             _lastEventTime   = DayProgress;
+            _nextEventCooldown = Random.Range(minTimeBetweenEvents, maxTimeBetweenEvents);
             Debug.Log($"[DayManager] Time resumed — cooldown resets at {DayProgress:F2}.");
         };
 
@@ -224,6 +227,7 @@ public class DayManager : MonoBehaviour
         OnDispatchStarted?.Invoke();
         Debug.Log($"Explorers dispatched! Day {GameManager.Instance.CurrentDay} underway.");
 
+        _nextEventCooldown = Random.Range(minTimeBetweenEvents, maxTimeBetweenEvents);
         _dayCoroutine = StartCoroutine(DayLoop());
     }
 
@@ -357,7 +361,7 @@ public class DayManager : MonoBehaviour
     private void TryFireEvent()
     {
         if (_eventInProgress)                                       return;
-        if (DayProgress - _lastEventTime < minTimeBetweenEvents)    return;
+        if (DayProgress - _lastEventTime < _nextEventCooldown)    return;
 
         var exploring = GameManager.Instance.GetExplorersByStatus(ExplorerStatus.Exploring);
         if (exploring.Count == 0)                                   return;
