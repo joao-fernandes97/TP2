@@ -13,6 +13,10 @@ public class BriefingPanelUI : MonoBehaviour
     [SerializeField] private Button      dispatchButton;
     [SerializeField] private TMP_Text    dispatchLabel;
 
+    [Header("Dispatch Hint")]
+    [Tooltip("Small text beneath the dispatch button — used to explain invalid states.")]
+    [SerializeField] private TMP_Text    dispatchHint;
+
     private readonly List<ExplorerCardUI> _cards = new();
 
     void Awake()
@@ -58,8 +62,58 @@ public class BriefingPanelUI : MonoBehaviour
     void UpdateDispatchButton()
     {
         int count = DayManager.Instance.SelectedCount;
-        dispatchButton.interactable = count > 0;
-        dispatchLabel.text = count > 0 ? $"Dispatch ({count})" : "Select Explorers";
+
+        if (count == 0)
+        {
+            dispatchButton.interactable = false;
+            dispatchLabel.text          = "Select Explorers";
+            SetHint("");
+            return;
+        }
+
+        if (DayManager.Instance.IsMixedSelection)
+        {
+            dispatchButton.interactable = false;
+            dispatchLabel.text          = "Invalid Selection";
+            SetHint("A rescue mission must be solo —\ndeselect other explorers first.");
+            return;
+        }
+
+        if (DayManager.Instance.IsRescueMission)
+        {
+            dispatchButton.interactable = true;
+            // Find the lost explorer's name for the label
+            string lostName = GetSingleSelectedName();
+            dispatchLabel.text = $"Rescue {lostName}";
+            SetHint("The whole day will be spent on the rescue.\nThe explorer will return weakened (−1 all stats).");
+            return;
+        }
+
+        // Normal dispatch
+        dispatchButton.interactable = true;
+        dispatchLabel.text          = $"Dispatch ({count})";
+        SetHint("");
+    }
+
+    void SetHint(string text)
+    {
+        if (dispatchHint == null) return;
+        dispatchHint.text = text;
+        dispatchHint.gameObject.SetActive(!string.IsNullOrEmpty(text));
+    }
+
+    string GetSingleSelectedName()
+    {
+        // Walk the card list — only one explorer is selected at this point
+        foreach (var card in _cards)
+        {
+            // We ask DayManager rather than peek at card internals
+        }
+        // Fall back: ask GameManager for Lost explorers and match
+        foreach (var explorer in GameManager.Instance.AllExplorers)
+            if (DayManager.Instance.IsSelected(explorer))
+                return explorer.Name;
+        return "Explorer";
     }
 
     void OnDispatch()

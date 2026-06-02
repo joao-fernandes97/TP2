@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "TP2.slnx"
+    "dotnet.defaultSolution": "MazeRunnerManager.slnx"
 }

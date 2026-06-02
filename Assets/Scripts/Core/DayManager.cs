@@ -44,6 +44,37 @@ public class DayManager : MonoBehaviour
     private bool _eventInProgress;
     private Coroutine _dayCoroutine;
 
+    // ─── Selection analysis (read by BriefingPanelUI) ────────────────────────
+
+    /// <summary>True when the only selected explorer is a single Lost explorer.</summary>
+    public bool IsRescueMission
+    {
+        get
+        {
+            if (_selectedForDispatch.Count != 1) return false;
+            foreach (var e in _selectedForDispatch)
+                return e.Status == ExplorerStatus.Lost;
+            return false;
+        }
+    }
+
+    /// <summary>True when the selection mixes Lost and InCamp explorers (invalid).</summary>
+    public bool IsMixedSelection
+    {
+        get
+        {
+            if (_selectedForDispatch.Count < 2) return false;
+            bool hasLost   = false;
+            bool hasInCamp = false;
+            foreach (var e in _selectedForDispatch)
+            {
+                if (e.Status == ExplorerStatus.Lost)   hasLost   = true;
+                if (e.Status == ExplorerStatus.InCamp) hasInCamp = true;
+            }
+            return hasLost && hasInCamp;
+        }
+    }
+    
     // Events
     public event System.Action<float>    OnDayProgressUpdated;
     public event System.Action           OnBriefingStarted;   // UI: show selection screen
@@ -97,14 +128,31 @@ public class DayManager : MonoBehaviour
     public void ToggleExplorerSelection(Explorer explorer)
     {
         if (!InBriefing) return;
-        if (explorer.Status != ExplorerStatus.InCamp) return;
+        // Accept InCamp and Lost explorers — Lost can only be rescued solo
+        if (explorer.Status != ExplorerStatus.InCamp &&
+            explorer.Status != ExplorerStatus.Lost) return;
 
         if (_selectedForDispatch.Contains(explorer))
+        {
             _selectedForDispatch.Remove(explorer);
-        else
-            _selectedForDispatch.Add(explorer);
+            Debug.Log($"{explorer.Name} Removed from dispatch");
+            return;
+        }
 
-        Debug.Log($"{explorer.Name} {(IsSelected(explorer) ? "Selected for" : "Removed from")} dispatch");
+        
+        
+        if (explorer.Status == ExplorerStatus.Lost)
+        {
+            _selectedForDispatch.Clear();   // rescue must be solo
+        }
+        else // InCamp
+        {
+            // Remove any Lost explorer that may be in the set
+            _selectedForDispatch.RemoveWhere(e => e.Status == ExplorerStatus.Lost);
+        }
+
+        _selectedForDispatch.Add(explorer);
+        Debug.Log($"{explorer.Name} Selected for dispatch");
     }
 
     public bool IsSelected(Explorer explorer) => _selectedForDispatch.Contains(explorer);
@@ -125,6 +173,33 @@ public class DayManager : MonoBehaviour
             Debug.LogWarning("No explorers selected — select at least one before dispatching.");
             return;
         }
+
+        if (IsMixedSelection)
+        {
+            Debug.LogWarning("Cannot mix Lost and InCamp explorers in the same mission.");
+            return;
+        }
+
+        // Hard guard: multiple Lost explorers can never be dispatched together
+        int lostCount = 0;
+        foreach (var e in _selectedForDispatch)
+            if (e.Status == ExplorerStatus.Lost) lostCount++;
+        if (lostCount > 1)
+        {
+            Debug.LogWarning("Only one Lost explorer can be rescued at a time.");
+            return;
+        }
+
+        if (IsRescueMission)
+        {
+            foreach (var e in _selectedForDispatch)
+                LaunchRescue(e);
+            _selectedForDispatch.Clear();
+            InBriefing = false;
+            return;
+        }
+
+        // Normal dispatch
 
         InBriefing = false;
 
@@ -152,6 +227,24 @@ public class DayManager : MonoBehaviour
         _dayCoroutine = StartCoroutine(DayLoop());
     }
 
+    // ─── Rescue ───────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Spends the whole day recovering one Lost explorer.
+    /// The explorer returns to camp with -1 to every stat.
+    /// No maze events fire; the day is consumed immediately.
+    /// </summary>
+    private void LaunchRescue(Explorer lost)
+    {
+        Debug.Log($"Rescue mission launched for {lost.Name}. Day consumed.");
+        lost.ApplyRescuePenalty();
+        GameManager.Instance.SetExplorerStatus(lost, ExplorerStatus.InCamp);
+        GameManager.Instance.NotifyExplorerStatsChanged(lost);
+
+        // Skip the day entirely — go straight to EndDay
+        StartCoroutine(EndDayAfterDelay(1.5f));
+    }
+    
     // ─── Recall ───────────────────────────────────────────────────────────────
 
     public void IssueRecall()
